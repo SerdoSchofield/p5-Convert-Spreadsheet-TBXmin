@@ -51,30 +51,30 @@ sub _convert {
 	
 	my $data = Spreadsheet::Read->ReadData($fh);
 	
-	my @row = row($data, 'A4');
+	my @row = row($fh);
 	print $fhout "@row";
 	
-# 	while (<$fh>) {
-# 		if ($. == 1) {
-# 			s/^(?:\xef\xbb\xbf|\x{feff})//;  #remove BOM
-# 		}
-# 		
-# 		if (/source||target/i) {
-# 			$started = 1;
-# 			next;
-# 		}
-# 		next unless $started;
-# 		
-# 		next if (/^\s*$/); #skip if blank
-# 		my $row;
-# 		
-# 		
-# 		print $fhout $_;
-# 		
-# 		
-# 		
-# 		
-# 	}
+	while (<$fh>) {
+		if ($. == 1) {
+			s/^(?:\xef\xbb\xbf|\x{feff})//;  #remove BOM
+		}
+		
+		# if (/source||target/i) {
+			# $started = 1;
+			# next;
+		# }
+		# next unless $started;
+		
+		# next if (/^\s*$/); #skip if blank
+		my $row;
+		
+		
+		print $fhout "$_";
+		
+		
+		
+		
+	}
 }
 
 _run() unless caller;
