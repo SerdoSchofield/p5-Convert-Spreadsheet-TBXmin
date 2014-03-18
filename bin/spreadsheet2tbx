@@ -1,0 +1,41 @@
+#!usr/bin/perl
+
+use strict;
+use warnings;
+use Convert::TBX::Spreadsheet qw(convert_spreadsheet);
+
+die "Usage: $0 <TBX-Min configured UTF-8 Tab Delimited Spreadsheet> <output>\n"
+	unless @ARGV == 2;
+
+convert_spreadsheet(@ARGV);
+
+__END__
+
+=head1 NAME
+
+utx2tbx - Convert Spreadsheet to TBX-Min.
+
+=head1 USAGE
+
+	spreadsheet2tbx ('/path/to/input') ('/path/to/output')
+	
+=head1 EXAMPLE
+
+	% utx2tbx Sample.utx Sample.tbx
+	
+=head1 DESCRIPTION
+
+spreadsheet2tbx A converter for preconfigured UTF-8 tab delimited spreadsheets to TBX-Min.
+
+=head1 AUTHOR
+
+James Hayes <james.s.hayes@gmail.com>
+
+=head1 COPYRIGHT AND LICENSE
+ 
+This software is copyright (c) 2014 by Alan Melby.
+ 
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+ 
+=cut
