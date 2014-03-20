@@ -1,0 +1,5 @@
+bin/spreadsheet2tbx
+Build.PL
+lib/Convert/TBX/Spreadsheet.pm
+MANIFEST			This list of files
+README.md
