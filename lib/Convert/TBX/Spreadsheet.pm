@@ -9,7 +9,7 @@ use Path::Tiny;
 use Exporter::Easy (
 	OK => [ 'convert_spreadsheet' ]
 	);
-	
+
 use open ':encoding(utf8)', ':std';
 
 our $VERSION = 0.01;
@@ -78,6 +78,7 @@ sub _convert {
 	} until (defined $started);
 
 	my $TBXmin = TBX::Min->new();
+	my $ID_Check = TBX::Min->new();
 	
 	$TBXmin->source_lang($source_lang) if (defined $source_lang);
 	$TBXmin->target_lang($target_lang) if (defined $target_lang);
@@ -91,6 +92,8 @@ sub _convert {
 	
 	while(<$fh>){
 		chomp;
+		s/\s*$//;
+		next if /^$/;
 		# turn line to list, then list to hash
 		my @field = split /\t/;
 		my %record;
@@ -104,7 +107,7 @@ sub _convert {
 			my ($lang_group_source, $lang_group_target, $term_group_source, $term_group_target);
 			my %hash = %$hash_ref;
 			my $entry = TBX::Min::Entry->new();
-
+			
 			while(my ($key, $value) = each %hash){
 				if ($key =~ /src_term/){
 					$lang_group_source = TBX::Min::LangGroup->new({code => $source_lang});
@@ -153,6 +156,13 @@ sub _convert {
 						$term_group_target->note($value) if (defined $term_group_target);
 					}
 				}
+				elsif ($key =~ /subject/i && (defined $subject == 0)){
+					if ($key =~ /source/i) {$subject = $value}
+					elsif ($key =~ /target/i){$subject = $value}
+					else {
+						$subject = $value;
+					}
+				}
 			}
 			
 				if (defined $term_group_source) {
@@ -163,9 +173,33 @@ sub _convert {
 					$lang_group_target->add_term_group($term_group_target);
 					$entry->add_lang_group($lang_group_target);
 				}
-			
-			$TBXmin->add_entry($entry);
+			$entry->subject_field($subject);
+			$ID_Check->add_entry($entry);
 		}
+	
+	my (%count_ids_one, %count_ids_two, @entry_ids, $generated_ids);
+	my $entry_list = $ID_Check->entries;
+	foreach my $entry_value (@$entry_list) {
+		my $c_id = $entry_value->id;
+		if (defined $c_id){
+			$count_ids_one{$c_id}++;
+			for ($c_id) {s/C([0-9]+)/$1/i};
+			push (@entry_ids, $c_id);
+		}
+	}
+	
+	foreach my $entry_value (@$entry_list) {
+		my $c_id = $entry_value->id;
+		$count_ids_two{$c_id}++ if defined $c_id;
+		
+		if (defined $c_id == 0 or $c_id eq '-'  or (defined $c_id && $count_ids_one{$c_id} > 1 && $count_ids_two{$c_id} > 1)) {
+			do  {$generated_ids++} until ("@entry_ids" !~ sprintf("%03d", $generated_ids));
+			push @entry_ids, $generated_ids;
+			$entry_value->id("C".sprintf("%03d", $generated_ids))
+		}
+		$TBXmin->add_entry($entry_value);
+	}	
+	
 	
 	if (defined $started == 0) {die "This file has not been preconfigured!\n"}
 	
