@@ -1,0 +1,30 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-us" xml:lang="en-us" >
+	<head>
+		<title>TBX Convert | Spreadsheet </title>
+		<link href="/static/css/basic.css" rel="stylesheet" type="text/css"/>
+	</head>
+	<body class="">
+		<form method="post" enctype="multipart/form-data" action="spreadsheet_header.php" align="center">
+			<div id="container" align="center">
+				<p align="left">Convert Spreadsheet to TBX-Min:
+					<input type="file" name="upload"/>
+					<br class="clear" />
+					<p align="left">Please give the following information (slots may be left blank if inapplicable to the Spreadsheet being converted):</p>
+					<p align="left">Source Language (ISO 639, e.g.  German = 'de',  English = 'en', etc.): <input title="Source Language" name="source" type="text" size="8" /></p>
+					<p align="left">Target Language (ISO 639, e.g.  German = 'de',  English = 'en', etc.): <input title="Target Language" name="target" type="text" size="8" /></p>
+					<p align="left">Timestamp (ISO 8601, e.g. 2014-03-02, >>leave blank to generate new<<): <input title="Timestamp" name="timestamp" type="text" size="8" /></p>
+					<p align="left">License: <input title="License" name="license" type="text" size="8" /></p>
+					<p align="left">Creator: <input title="Creator" name="creator" type="text" size="8" /></p>
+					<p align="left">Description: <input title="Description" name="description" type="text" size="8" /></p>
+					<p align="left">Directionality: <input type="radio" title="Directionality" name="directionality" type="text" value="monodirectional" size="8" />monodirectional <input type="radio" title="Directionality" name="directionality" type="text" value="bidirectional" size="8" />bidirectional</p>
+					<p align="left">Subject (leave blank if each entry is different): <input title="Subject" name="subject" type="text" size="8" /></p>
+					<p align="left">Dictionary ID: <input title="Dict_ID" name="dict_id" type="text" size="8" /></p>
+					
+					<input type="submit" value="Continue"/>
+				</p>
+			</div>
+		</form>
+	</body>
+</html>

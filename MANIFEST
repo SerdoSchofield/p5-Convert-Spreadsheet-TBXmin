@@ -3,3 +3,6 @@ Build.PL
 lib/Convert/TBX/Spreadsheet.pm
 MANIFEST			This list of files
 README.md
+Makefile.PL
+META.yml
+META.json

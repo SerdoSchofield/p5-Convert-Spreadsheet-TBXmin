@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en-us" xml:lang="en-us" >
+	<head>
+		<title>TBX Convert | Spreadsheet </title>
+		<link href="/static/css/basic.css" rel="stylesheet" type="text/css"/>
+	</head>
+	<body class="">
+		<!-- Header -->
+		<div id="header">
+			<h2 id="site-name">TBX Convert: Spreadsheet</h2>
+		</div>
+		<!-- End Header -->
+
+		<!-- Container -->
+		<div id="container">
+			<!-- Content -->
+			<div id="content">
+				<h1>TBX Convert: TBX-Min</h1>
+				
+				<form method="post" enctype="multipart/form-data" action="spreadsheet_header.php" align="center">
+			<div id="container" align="center">
+				<p align="left">Convert Spreadsheet to TBX-Min:
+					<input type="file" name="upload"/>
+					<br class="clear" />
+					<p align="left">Please give the following information (slots may be left blank if inapplicable to the Spreadsheet being converted):</p>
+					<p align="left">Source Language (ISO 639, e.g.  German = 'de',  English = 'en', etc.): <input title="Source Language" name="source" type="text" size="8" /></p>
+					<p align="left">Target Language (ISO 639, e.g.  German = 'de',  English = 'en', etc.): <input title="Target Language" name="target" type="text" size="8" /></p>
+					<p align="left">Timestamp (ISO 8601, e.g. 2014-03-02, >>leave blank to generate new<<): <input title="Timestamp" name="timestamp" type="text" size="8" /></p>
+					<p align="left">License: <input title="License" name="license" type="text" size="8" /></p>
+					<p align="left">Creator: <input title="Creator" name="creator" type="text" size="8" /></p>
+					<p align="left">Description: <input title="Description" name="description" type="text" size="8" /></p>
+					<p align="left">Directionality: <input type="radio" title="Directionality" name="directionality" type="text" value="monodirectional" size="8" />monodirectional <input type="radio" title="Directionality" name="directionality" type="text" value="bidirectional" size="8" />bidirectional</p>
+					<p align="left">Subject (leave blank if each entry is different): <input title="Subject" name="subject" type="text" size="8" /></p>
+					<p align="left">Dictionary ID: <input title="Dict_ID" name="dict_id" type="text" size="8" /></p>
+					
+					<input type="submit" value="Continue"/>
+				</p>
+			</div>
+		</form>
+				<!-- <iframe src="Spreadsheet_header.htm" width="100%" height="600" frameborder="0"></iframe> -->
+				
+				<br class="clear" />
+			</div>
+			<!-- END Content -->
+			<div id="footer">
+				<p>&copy; 2013 LTAC Global. This website is not affiliated with SDL plc. Trademarks are property of their owners. Tautologies are in the public domain.</p>
+				<p><a href="../">Up to TBX-Min</a></p>
+			</div>
+		</div>
+		<!-- END Container -->
+	</body>
+</html>
