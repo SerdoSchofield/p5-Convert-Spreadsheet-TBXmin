@@ -17,7 +17,7 @@ A pre-configuration module has been added to walk the user through this process,
 
 To use this module, simply download this package, and via command promt navigate into the 'lib/Convert/TBX/' directory.  Then, run the perl script 'config.pm' as shown: 
 
-'-$ perl config.pm <input file (the spreadsheet you wish to configure)>'
+	'-$ perl config.pm <input file (the spreadsheet you wish to configure)>'
 
 The process will require at least the following modules to be installed via CPAN console command:
 
