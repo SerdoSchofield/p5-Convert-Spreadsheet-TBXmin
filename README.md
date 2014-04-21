@@ -13,6 +13,30 @@ A converter for preconfigured UTF-8 tab delimited spreadsheets to TBX-Min.
 
 # SPREADSHEET FORMAT
 
+A pre-configuration module has been added to walk the user through this process, should they prefer not to do it manually.
+
+To use this module, simply download this package, and via command promt navigate into the 'lib/Convert/TBX/' directory.  Then, run the perl script 'config.pm' as shown: 
+
+'-$ perl config.pm <input file (the spreadsheet you wish to configure)>'
+
+The process will require at least the following modules to be installed via CPAN console command:
+
+Spreadsheet::Read
+Exporter::Easy
+
+*May or may not require (This depends on your spreadsheet type, e.g. Excel, Libre Office, Open Office):
+*The easiest way to know what you need is to run the script and see what module it asks for
+
+Spreadsheet::ReadSXC,   (Libre Office/Open Office)
+Spreadsheet::ParseExcel, (MS Excel)
+Spreadsheet::ParseXLSX, (MS Excel)
+Spreadsheet::XLSX, (MS Excel)
+Text::CSV_XS, (CSV files)
+Text::CSV_PP, (CSV files)
+
+
+Edit Manually:
+
 1) Add all relevent header info to the beginning of spreadsheet on separate rows like so:
 	
 	source_lang: en (or whatever the language)
