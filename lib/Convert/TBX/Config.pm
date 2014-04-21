@@ -3,7 +3,7 @@
 package Convert::TBX::Spreadsheet::Config;
 use strict;
 use warnings;
-use Path::Tiny;
+#use Path::Tiny;
 use Exporter::Easy (
 	OK => [ 'config_spreadsheet' ]
 	);
@@ -15,7 +15,7 @@ sub config_spreadsheet {
 	my ($fh, $fhout);
 	my ($input, $source_lang, $target_lang, $timestamp, $license, $creator, $description, $directionality, $subject, $d_id) = @_;
 	
-	$fh = _get_handle($input);
+#	$fh = _get_handle($input);
 	open $fhout, ">", "$input.configured.txt";
 	
 	my $data = ReadData($input) #, parser => 'csv')
@@ -191,23 +191,23 @@ sub _run {
 	config_spreadsheet($ARGV[0], $source_lang, $target_lang, $timestamp, $license, $creator, $description, $directionality, $subject, $d_id);
 }
 
-sub _get_handle {
-    my ($input, $output) = @_;
+#sub _get_handle {
+#    my ($input, $output) = @_;
 
-    my ($fh, $fhout);
+#    my ($fh, $fhout);
 	
 	# open $fhout, '>', $output;
 	
-    if((ref $input) eq 'SCALAR'){
+#    if((ref $input) eq 'SCALAR'){
 
-        open $fh, '<', $input; ## no critic(RequireBriefOpen)
+#        open $fh, '<', $input; ## no critic(RequireBriefOpen)
 
-    }else{
+#    }else{
 
-		$fh = path($input)->filehandle('<');
+#		$fh = path($input)->filehandle('<');
      
-    }
-    return ($fh, $fhout);
-}
+#    }
+#    return ($fh, $fhout);
+#}
 
 _run() unless caller;
