@@ -21,8 +21,8 @@ To use this module, simply download this package, and via command promt navigate
 
 The process will require at least the following modules to be installed via CPAN console command:
 
-Spreadsheet::Read
-Exporter::Easy
+Spreadsheet::Read,
+Exporter::Easy,
 
 *May or may not require (This depends on your spreadsheet type, e.g. Excel, Libre Office, Open Office):
 *The easiest way to know what you need is to run the script and see what module it asks for
