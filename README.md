@@ -15,7 +15,7 @@ A converter for preconfigured UTF-8 tab delimited spreadsheets to TBX-Min.
 
 A pre-configuration module has been added to walk the user through this process, should they prefer not to do it manually.
 
-To use this module, simply download this package, and via command promt navigate into the 'lib/Convert/TBX/' directory.  Then, run the perl script 'config.pm' as shown: 
+To use this module, simply download this package, and via command prompt navigate into the 'lib/Convert/TBX/' directory.  Then, run the perl script 'config.pm' as shown: 
 
 	'-$ perl config.pm <input file (the spreadsheet you wish to configure)>'
 
