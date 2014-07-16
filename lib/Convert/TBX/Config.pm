@@ -3,7 +3,7 @@
 package Convert::TBX::Spreadsheet::Config;
 use strict;
 use warnings;
-#use Path::Tiny;
+use Path::Tiny;
 use Exporter::Easy (
 	OK => [ 'config_spreadsheet' ]
 	);
@@ -11,21 +11,119 @@ use Spreadsheet::Read qw(ReadData rows);
 use Encode qw(decode);
 use open ':encoding(utf8)', ':std';
 
+# This is intended to work with the webapp at tbxconvert.gevterm.net/tbx-min.  It will not do much of anything without the PHP end.  
+# The config_spreadsheet_terminal function below will allow for configuration via terminal
 sub config_spreadsheet {
-	my ($fh, $fhout);
+	my ($fh, $fhout, $data);
+	my ($input, $source_lang, $target_lang, $timestamp, $license, $creator, $description, $directionality, $subject, $d_id, $realFileName) = @_;
+
+	if ($realFileName =~ /\.xlsx/ || $input =~ /\.xlsx/)
+	{
+		$data = ReadData($input, parser => 'xlsx') #, parser => 'csv')
+        	# or die "couldn't read spreadsheet; check file extension?";
+		# or $data = ReadData($input, parser=> 'xls')
+		# or $data = ReadData($input, parser=> 'csv')
+		or die "couldn't read '.xlsx' spreadsheet; check file extension or try another format?";
+	}
+	elsif ($realFileName =~ /\.xls/ || $input =~ /\.xls/)
+	{
+		$data = ReadData($input, parser=> 'xls')
+		or die "couldn't read '.xls' spreadsheet; check file extension or try another format?";
+	}
+	elsif ($realFileName =~ /\.csv|\.utx/ || $input =~ /\.csv|\.utx/)
+	{
+		$data = ReadData($input, parser=> 'csv')
+		or die "couldn't read 'csv' spreadsheet; check file extension or try another format?";
+	}
+	elsif ($realFileName =~ /\.ods|\.oo/ || $input =~ /\.ods|\.oo/)
+	{
+		$data = ReadData($input, parser=>'ods') or $data = undef;
+		if (!defined ($data))
+		{
+			$data = ReadData($input, parser=>'oo') or $data = undef;
+			if (!defined ($data))
+			{
+				$data = ReadData($input, parser=>'openoffice') or $data = undef;
+				if (!defined ($data))
+				{
+					$data = ReadData($input, parser=>'libreoffice') or die "Still cannot parse the given spreadsheet;  Check file extension or try another format?";
+				}
+			}
+		}
+	}
+	else
+	{
+		$data = ReadData($input) or
+		die "couldn't read spreadsheet; check file extension or try another format?";
+	}
+	
+	my @rows = rows ($data->[1]);
+	
+	my $header_found = 0;
+	
+	foreach my $row_array (@rows) 
+	{
+		my @row = @$row_array;
+		foreach $_ (@row)
+		{
+			$_ = decode 'utf-8', $_;
+			$_ = "" if (defined $_ == 0);
+			$_ .= "(>^_^)>";  #this will be used in place of \t delimiter for storage
+		}
+		
+		$fhout .= "@row<(^_^)>";
+	}
+	print $fhout;
+}
+
+sub config_spreadsheet_terminal {
+	my ($fh, $fhout, $data);
 	my ($input, $source_lang, $target_lang, $timestamp, $license, $creator, $description, $directionality, $subject, $d_id) = @_;
 	
 #	$fh = _get_handle($input);
 	open $fhout, ">", "$input.configured.txt";
 	
-	my $data = ReadData($input) #, parser => 'csv')
-        # or die "couldn't read spreadsheet; check file extension?";
+	if ($realFileName =~ /\.xlsx/ || $input =~ /\.xlsx/)
+	{
+		$data = ReadData($input, parser => 'xlsx') #, parser => 'csv')
+        	# or die "couldn't read spreadsheet; check file extension?";
 		# or $data = ReadData($input, parser=> 'xls')
 		# or $data = ReadData($input, parser=> 'csv')
-		or die "couldn't read spreadsheet; check file extension?";
+		or die "couldn't read '.xlsx' spreadsheet; check file extension or try another format?";
+	}
+	elsif ($realFileName =~ /\.xls/ || $input =~ /\.xls/)
+	{
+		$data = ReadData($input, parser=> 'xls')
+		or die "couldn't read '.xls' spreadsheet; check file extension or try another format?";
+	}
+	elsif ($realFileName =~ /\.csv|\.utx/ || $input =~ /\.csv|\.utx/)
+	{
+		$data = ReadData($input, parser=> 'csv')
+		or die "couldn't read 'csv' spreadsheet; check file extension or try another format?";
+	}
+	elsif ($realFileName =~ /\.ods|\.oo/ || $input =~ /\.ods|\.oo/)
+	{
+		$data = ReadData($input, parser=>'ods') or $data = undef;
+		if (!defined ($data))
+		{
+			$data = ReadData($input, parser=>'oo') or $data = undef;
+			if (!defined ($data))
+			{
+				$data = ReadData($input, parser=>'openoffice') or $data = undef;
+				if (!defined ($data))
+				{
+					$data = ReadData($input, parser=>'libreoffice') or die "Still cannot parse the given spreadsheet;  Check file extension or try another format?";
+				}
+			}
+		}
+	}
+	else
+	{
+		$data = ReadData($input) or
+		die "couldn't read spreadsheet; check file extension or try another format?";
+	}
 	
 	my @rows = rows ($data->[1]);
-	# my $cell = $data->[1];
 	
 	print $fhout ("source_lang: ".$source_lang) if (defined $source_lang && $source_lang ne "\n");
 	print $fhout ("target_lang: ".$target_lang) if (defined $target_lang && $target_lang ne "\n");

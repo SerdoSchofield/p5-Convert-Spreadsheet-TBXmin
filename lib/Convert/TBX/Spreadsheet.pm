@@ -6,13 +6,14 @@ use warnings;
 # use Spreadsheet::Read qw(ReadData row);
 use TBX::Min;
 use Path::Tiny;
+use DateTime;
 use Exporter::Easy (
 	OK => [ 'convert_spreadsheet' ]
 	);
 
 use open ':encoding(utf8)', ':std';
 
-our $VERSION = 0.01;
+our $VERSION = 0.02;
 
 sub convert_spreadsheet {
 	my ($fh, $fhout);
@@ -61,7 +62,7 @@ sub _convert {
 		if($_ !~ /src_term|tgt_term/i){
 			$source_lang = $1 if /source_lang: ([a-zA-Z-]*)/;
 			$target_lang = $1 if /target_lang: ([a-zA-Z-]*)/;
-			$timestamp = $1 if /timestamp: ?([0-9T:+-]+)/;
+			#$timestamp = $1 if /timestamp: ?([0-9T:+-]+)/; #spreadsheet converter only generates timestamp
 			$creator = $1 if /creator: ?([^;]+)/i;
 			$license = $1 if /license: ?([^;]+)/i;
 			$description = $1 if /description: ?([^;]+)/i;
@@ -79,7 +80,7 @@ sub _convert {
 
 	my $TBXmin = TBX::Min->new();
 	my $ID_Check = TBX::Min->new();
-	
+	my $timestamp = DateTime->now()->iso8601();
 	$TBXmin->source_lang($source_lang) if (defined $source_lang);
 	$TBXmin->target_lang($target_lang) if (defined $target_lang);
 	$TBXmin->creator($creator) if (defined $creator);
@@ -96,6 +97,10 @@ sub _convert {
 		next if /^$/;
 		# turn line to list, then list to hash
 		my @field = split /\t/;
+		foreach (@field)
+		{
+			s/^\s+//;
+		}
 		my %record;
 		%record = map {$field_name[$_] => $field[$_]} (0..$#field);
 		
@@ -106,16 +111,16 @@ sub _convert {
 		foreach my $hash_ref (@record) {
 			my ($lang_group_source, $lang_group_target, $term_group_source, $term_group_target);
 			my %hash = %$hash_ref;
-			my $entry = TBX::Min::Entry->new();
+			my $entry = TBX::Min::TermEntry->new();
 			
 			while(my ($key, $value) = each %hash){
 				if ($key =~ /src_term/){
-					$lang_group_source = TBX::Min::LangGroup->new({code => $source_lang});
-					$term_group_source = TBX::Min::TermGroup->new({term => $value});
+					$lang_group_source = TBX::Min::LangSet->new({code => $source_lang});
+					$term_group_source = TBX::Min::TIG->new({term => $value}) if (defined $value && $value ne '');
 				}
 				elsif ($key =~ /tgt_term/){
-					$lang_group_target = TBX::Min::LangGroup->new({code => $target_lang});
-					$term_group_target = TBX::Min::TermGroup->new({term => $value});
+					$lang_group_target = TBX::Min::LangSet->new({code => $target_lang});
+					$term_group_target = TBX::Min::TIG->new({term => $value}) if (defined $value && $value ne '');
 				}
 			}
 
@@ -125,6 +130,7 @@ sub _convert {
 					$entry->id($value) if (defined $value);
 				}
 				elsif ($key =~ /status/i){
+					$value = undef if (defined $value && $value !~ /admitted|preferred|notRecommended|obsolete/i);
 					if ($key =~ /source/i) {$term_group_source->status($value)}
 					elsif ($key =~ /target/i){$term_group_target->status($value)}
 					else {
@@ -157,10 +163,10 @@ sub _convert {
 					}
 				}
 				elsif ($key =~ /subject/i && (defined $subject == 0)){
-					if ($key =~ /source/i) {$subject = $value}
-					elsif ($key =~ /target/i){$subject = $value}
+					if ($key =~ /source/i) {$subject = $value if defined $value}
+					elsif ($key =~ /target/i){$subject = $value if defined $value}
 					else {
-						$subject = $value;
+						$subject = $value if defined $value;
 					}
 				}
 			}
