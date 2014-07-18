@@ -60,8 +60,8 @@ sub _convert {
 		}
 		
 		if($_ !~ /src_term|tgt_term/i){
-			$source_lang = $1 if /source_lang: ([a-zA-Z-]*)/;
-			$target_lang = $1 if /target_lang: ([a-zA-Z-]*)/;
+			$source_lang = $1 if /source_lang: ([a-zA-Z-]+)/;
+			$target_lang = $1 if /target_lang: ([a-zA-Z-]+)/;
 			#$timestamp = $1 if /timestamp: ?([0-9T:+-]+)/; #spreadsheet converter only generates timestamp
 			$creator = $1 if /creator: ?([^;]+)/i;
 			$license = $1 if /license: ?([^;]+)/i;
@@ -69,6 +69,11 @@ sub _convert {
 			$id = $1 if /dict_id:* ?([^;]+)/i;
 			$directionality = $1 if /(bidirectional|monodirectional)/i;
 			$subject = $1 if /subject\w*: ?([^;]+)/i;
+		}
+		
+		if (!defined $target_lang)
+		{
+			$directionality = undef;
 		}
 		
 		if (/src_term|tgt_term/i) {
@@ -82,13 +87,13 @@ sub _convert {
 	my $ID_Check = TBX::Min->new();
 	$timestamp = DateTime->now()->iso8601();
 	$TBXmin->source_lang($source_lang) if (defined $source_lang);
-	$TBXmin->target_lang($target_lang) if (defined $target_lang);
-	$TBXmin->creator($creator) if (defined $creator);
+	$TBXmin->target_lang($target_lang) if (defined $target_lang && $target_lang !~ /\s*[\r\n]?/);
+	$TBXmin->creator($creator) if (defined $creator && $creator !~ /\s*[\r\n]?/);
 	$TBXmin->date_created($timestamp);
-	$TBXmin->description($description) if (defined $description);
+	$TBXmin->description($description) if (defined $description  && $description !~ /\s*[\r\n]?/);
 	$TBXmin->directionality($directionality) if (defined $directionality);
-	$TBXmin->license($license) if (defined $license);
-	$TBXmin->id($id) if (defined $id);
+	$TBXmin->license($license) if (defined $license && $license !~ /\s*[\r\n]?/);
+	$TBXmin->id($id) if (defined $id && $id !~ /\s*[\r\n]?/);
 
 	my @ERROR;
 	my $NAMES;
