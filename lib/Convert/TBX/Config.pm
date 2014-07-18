@@ -19,10 +19,7 @@ sub config_spreadsheet {
 
 	if ($realFileName =~ /\.xlsx/ || $input =~ /\.xlsx/)
 	{
-		$data = ReadData($input, parser => 'xlsx') #, parser => 'csv')
-        	# or die "couldn't read spreadsheet; check file extension?";
-		# or $data = ReadData($input, parser=> 'xls')
-		# or $data = ReadData($input, parser=> 'csv')
+		$data = ReadData($input, parser => 'xlsx')
 		or die "couldn't read '.xlsx' spreadsheet; check file extension or try another format?";
 	}
 	elsif ($realFileName =~ /\.xls/ || $input =~ /\.xls/)
@@ -64,10 +61,15 @@ sub config_spreadsheet {
 	foreach my $row_array (@rows) 
 	{
 		my @row = @$row_array;
+		my $x;
 		foreach $_ (@row)
 		{
+			$x++;
 			$_ = decode 'utf-8', $_;
-			$_ = "" if (defined $_ == 0);
+			if (!defined $_ || /^\s+[\r\n]*$/ || /^\s*\b[a-z]\b\s*[\r\n]*$/i){
+				$row[$x-1] = "(>^_^)>";
+				next;
+			}
 			$_ .= "(>^_^)>";  #this will be used in place of \t delimiter for storage
 		}
 		
@@ -78,7 +80,7 @@ sub config_spreadsheet {
 
 sub config_spreadsheet_terminal {
 	my ($fh, $fhout, $data);
-	my ($input, $source_lang, $target_lang, $timestamp, $license, $creator, $description, $directionality, $subject, $d_id) = @_;
+	my ($input, $source_lang, $target_lang, $timestamp, $license, $creator, $description, $directionality, $subject, $d_id, $realFileName) = @_;
 	
 #	$fh = _get_handle($input);
 	open $fhout, ">", "$input.configured.txt";
@@ -266,6 +268,9 @@ sub config_spreadsheet_terminal {
 }
 
 sub _run {
+
+	if (!defined($ARGV[9]))
+	{
 	print "Please answer a few questions (* means optional):\n";
 	print "Source language (ISO 639, e.g.  German = 'de',  English = 'en', etc.): ";
 		my $source_lang = <STDIN>;
@@ -286,7 +291,12 @@ sub _run {
 	print "Dictionary ID*: ";
 		my $d_id = <STDIN>;
 		
-	config_spreadsheet($ARGV[0], $source_lang, $target_lang, $timestamp, $license, $creator, $description, $directionality, $subject, $d_id);
+	config_spreadsheet($ARGV[0], $source_lang, $target_lang, $timestamp, $license, $creator, $description, $directionality, $subject, $d_id, $ARGV[0]);
+	}
+	else
+	{
+		config_spreadsheet(@ARGV);
+	}
 }
 
 #sub _get_handle {

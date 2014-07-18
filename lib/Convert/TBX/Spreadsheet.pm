@@ -80,7 +80,7 @@ sub _convert {
 
 	my $TBXmin = TBX::Min->new();
 	my $ID_Check = TBX::Min->new();
-	my $timestamp = DateTime->now()->iso8601();
+	$timestamp = DateTime->now()->iso8601();
 	$TBXmin->source_lang($source_lang) if (defined $source_lang);
 	$TBXmin->target_lang($target_lang) if (defined $target_lang);
 	$TBXmin->creator($creator) if (defined $creator);
@@ -90,11 +90,13 @@ sub _convert {
 	$TBXmin->license($license) if (defined $license);
 	$TBXmin->id($id) if (defined $id);
 
-	
+	my @ERROR;
+	my $NAMES;
 	while(<$fh>){
 		chomp;
 		s/\s*$//;
-		next if /^$/;
+		next if /^$/;  #do not include blank lines
+
 		# turn line to list, then list to hash
 		my @field = split /\t/;
 		foreach (@field)
@@ -107,8 +109,9 @@ sub _convert {
 		push @record, \%record;
 	}
 		
-		
+		my $x = 0;
 		foreach my $hash_ref (@record) {
+			my $noteGrp = TBX::Min::NoteGrp->new;
 			my ($lang_group_source, $lang_group_target, $term_group_source, $term_group_target);
 			my %hash = %$hash_ref;
 			my $entry = TBX::Min::TermEntry->new();
@@ -123,9 +126,8 @@ sub _convert {
 					$term_group_target = TBX::Min::TIG->new({term => $value}) if (defined $value && $value ne '');
 				}
 			}
-
+			
 			while(my ($key, $value) = each %hash) {
-
 				if ($key =~ /^id$/i){
 					$entry->id($value) if (defined $value);
 				}
@@ -139,6 +141,7 @@ sub _convert {
 					}
 				}
 				elsif ($key =~ /partOfSpeech/i){
+					$value = undef if (defined $value && $value =~ /verb|adjective|adverb|noun/i);
 					if ($key =~ /source/i) {$term_group_source->part_of_speech($value)}
 					elsif ($key =~ /target/i){$term_group_target->part_of_speech($value)}
 					else {
@@ -155,12 +158,88 @@ sub _convert {
 					}
 				}
 				elsif ($key =~ /note/i){
-					if ($key =~ /source/i) {$term_group_source->note($value)}
-					elsif ($key =~ /target/i){$term_group_target->note($value)}
-					else {
-						$term_group_source->note($value) if (defined $term_group_source);
-						$term_group_target->note($value) if (defined $term_group_target);
+				
+					push(@ERROR, "LINE $x: $key + $value ||<br>\n");
+					
+					if ($value !~ /\w+/){next}
+					if (!defined $noteGrp)
+					{
+						my $key = $1 if ($key =~ /(?<=:)\s*(.+)/);
+						my $note = TBX::Min::Note->new(noteValue => $value);
+						$note->noteKey($key) if defined $key;
+						$noteGrp->add_note($note);
+						$NAMES .= $key."_i_|_i_<br>";
 					}
+					else
+					{
+						my $key = $1 if ($key =~ /(?<=:)\s*(.+)/);
+						my $note = TBX::Min::Note->new(noteValue => $value);
+						$note->noteKey($key) if defined $key;
+						$noteGrp->add_note($note);
+						$NAMES .= $key."_i_|_i_<br>";
+					}
+# 					if ($value =~ /\w+/){
+# 						if (defined $term_group_source)
+# 						{
+# 							if (!defined ${$term_group_source->note_groups}[0])
+# 							{
+# 								$noteGrp = TBX::Min::NoteGrp->new();
+# 								my $note = TBX::Min::Note->new();
+# 								if ($key =~ /note:(.+)/){
+# 									$note->noteKey($1);
+# 									$note->noteValue($value);
+# 								}else{
+# 									$note->noteValue($value);
+# 								}
+# 								
+# 								$noteGrp->add_note($note);
+# 							}
+# 							else
+# 							{
+# 								$noteGrp = @{$term_group_source->note_groups}[0];
+# 								my $note = TBX::Min::Note->new();
+# 								if ($key =~ /:(.+)/){
+# 									$note->noteKey($1);
+# 									$note->noteValue($value);
+# 								}else{
+# 									$note->noteValue($value);
+# 								}
+# 								$noteGrp->add_note($note);
+# 							}
+# 							if (defined $term_group_source && defined $noteGrp) { $term_group_source->add_note_group($noteGrp) }
+# 						}
+# 						if (defined $term_group_target)
+# 						{
+# 							if (!defined ${$term_group_target->note_groups}[0])
+# 							{
+# 								$noteGrp = TBX::Min::NoteGrp->new();
+# 								my $note = TBX::Min::Note->new();
+# 								
+# 								if ($key =~ /note:(.+)/){
+# 									$note->noteKey($1);
+# 									$note->noteValue($value);
+# 								}else{
+# 									$note->noteValue($value);
+# 								}
+# 								
+# 								$noteGrp->add_note($note);
+# 							}
+# 							else
+# 							{
+# 								$noteGrp = @{$term_group_target->note_groups}[0];
+# 								my $note = TBX::Min::Note->new();
+# 								
+# 								if ($key =~ /:(.+)/){
+# 									$note->noteKey($1);
+# 									$note->noteValue($value);
+# 								}else{
+# 									$note->noteValue($value);
+# 								}
+# 								$noteGrp->add_note($note);
+# 							}
+# 							if (defined $term_group_target && defined $noteGrp) { $term_group_target->add_note_group($noteGrp) }
+# 						}
+# 					}
 				}
 				elsif ($key =~ /subject/i && (defined $subject == 0)){
 					if ($key =~ /source/i) {$subject = $value if defined $value}
@@ -171,16 +250,20 @@ sub _convert {
 				}
 			}
 			
+			
 				if (defined $term_group_source) {
+					$term_group_source->add_note_group($noteGrp) if (@{$noteGrp->notes} > 0);
 					$lang_group_source->add_term_group($term_group_source);
 					$entry->add_lang_group($lang_group_source);
 				}
 				if (defined $term_group_target) {
+					$term_group_target->add_note_group($noteGrp) if (@{$noteGrp->notes} > 0);
 					$lang_group_target->add_term_group($term_group_target);
 					$entry->add_lang_group($lang_group_target);
 				}
 			$entry->subject_field($subject);
 			$ID_Check->add_entry($entry);
+			$x++;
 		}
 	
 	my (%count_ids_one, %count_ids_two, @entry_ids, $generated_ids);
@@ -212,6 +295,7 @@ sub _convert {
 	my $TBXmin_ref = $TBXmin->as_xml;
 	my $TBXminstring .= "<?xml version='1.0' encoding=\"UTF-8\"?>\n".$$TBXmin_ref;
 	
+# 	die "$NAMES<br><br><br>@ERROR\n\n<br><br><br>$TBXminstring";
 	print $fhout $TBXminstring;
 	
 	return $TBXminstring;
