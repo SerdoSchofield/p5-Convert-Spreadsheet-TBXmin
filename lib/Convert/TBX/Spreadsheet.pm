@@ -52,6 +52,7 @@ sub _convert {
 	my ($source_lang, $target_lang, $timestamp, $creator, $license, $description, $id, $directionality, $subject, $started, @record, @field_name);
 	my ($fh, $fhout) = @_;
 	
+	
 	do {
 		$_ = <$fh>;
 		chomp;
@@ -66,10 +67,11 @@ sub _convert {
 			$creator = $1 if /creator: ?([^;]+)/i;
 			$license = $1 if /license: ?([^;]+)/i;
 			$description = $1 if /description: ?([^;]+)/i;
-			$id = $1 if /dict_id:* ?([^;]+)/i;
+			$id = $1 if /dict_id: ?([^;]+)/i;
 			$directionality = $1 if /(bidirectional|monodirectional)/i;
-			$subject = $1 if /subject\w*: ?([^;]+)/i;
+			$subject = $1 if /subject: ?([^;]+)/i;
 		}
+		
 		
 		if (!defined $target_lang)
 		{
@@ -87,13 +89,13 @@ sub _convert {
 	my $ID_Check = TBX::Min->new();
 	$timestamp = DateTime->now()->iso8601();
 	$TBXmin->source_lang($source_lang) if (defined $source_lang);
-	$TBXmin->target_lang($target_lang) if (defined $target_lang && $target_lang !~ /\s*[\r\n]?/);
-	$TBXmin->creator($creator) if (defined $creator && $creator !~ /\s*[\r\n]?/);
+	$TBXmin->target_lang($target_lang) if (defined $target_lang && $target_lang =~ /\w+/);
+	$TBXmin->creator($creator) if (defined $creator && $creator =~ /\w+/);
 	$TBXmin->date_created($timestamp);
-	$TBXmin->description($description) if (defined $description  && $description !~ /\s*[\r\n]?/);
+	$TBXmin->description($description) if (defined $description  && $description =~ /\w+/);
 	$TBXmin->directionality($directionality) if (defined $directionality);
-	$TBXmin->license($license) if (defined $license && $license !~ /\s*[\r\n]?/);
-	$TBXmin->id($id) if (defined $id && $id !~ /\s*[\r\n]?/);
+	$TBXmin->license($license) if (defined $license && $license =~ /\w+/);
+	$TBXmin->id($id) if (defined $id && $id =~ /\w+/);
 
 	my @ERROR;
 	my $NAMES;
@@ -146,7 +148,7 @@ sub _convert {
 					}
 				}
 				elsif ($key =~ /partOfSpeech/i){
-					$value = undef if (defined $value && $value =~ /verb|adjective|adverb|noun/i);
+					$value = undef if (defined $value && $value !~ /verb|adjective|adverb|noun/i);
 					if ($key =~ /source/i) {$term_group_source->part_of_speech($value)}
 					elsif ($key =~ /target/i){$term_group_target->part_of_speech($value)}
 					else {
@@ -266,7 +268,7 @@ sub _convert {
 					$lang_group_target->add_term_group($term_group_target);
 					$entry->add_lang_group($lang_group_target);
 				}
-			$entry->subject_field($subject);
+			$entry->subject_field($subject) if (defined $subject && $subject =~ /\w/);
 			$ID_Check->add_entry($entry);
 			$x++;
 		}

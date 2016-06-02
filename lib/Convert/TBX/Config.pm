@@ -1,6 +1,6 @@
 #!usr/bin/perl
 
-package Convert::TBX::Spreadsheet::Config;
+package Convert::Spreadsheet::Min::Config;
 use strict;
 use warnings;
 use Path::Tiny;
@@ -9,7 +9,36 @@ use Exporter::Easy (
 	);
 use Spreadsheet::Read qw(ReadData rows);
 use Encode qw(decode);
-use open ':encoding(utf8)', ':std';
+#use utf8;
+use open ':encoding(utf-8)', ':std';
+
+# report parsing errors from TBX::Min in the caller's namespace,
+# not ours
+our @CARP_NOT = __PACKAGE__;
+
+# VERSION
+
+# ABSTRACT: Configure Spreadsheet to be Converted to TBX-Min
+=head1 DESCRIPTION
+
+This module provides a simple command line based UI for pre-configuring
+a spreadsheet to be converted by Convert::Spreadsheet::Min.
+Alternatively, an external UI may be used by
+calling L<Convert::Spreadsheet::Min::Config/config_spreadsheet
+and passing in
+
+=cut
+
+=head1 FUNCTIONS
+
+=head2 C<min2basic>
+
+Converts TBX-Min data into TBX-Basic data. The input may be either
+a TBX::Min object or data to be passed to TBX::Min's
+L<TBX::Min/new_from_xml> constructor. The return value is a scalar
+ref containing the TBX-Basic XML document as a UTF-8-encoded string.
+
+=cut
 
 # This is intended to work with the webapp at tbxconvert.gevterm.net/tbx-min.  It will not do much of anything without the PHP end.  
 # The config_spreadsheet_terminal function below will allow for configuration via terminal
@@ -27,7 +56,7 @@ sub config_spreadsheet {
 		$data = ReadData($input, parser=> 'xls')
 		or die "couldn't read '.xls' spreadsheet; check file extension or try another format?";
 	}
-	elsif ($realFileName =~ /\.csv|\.utx/ || $input =~ /\.csv|\.utx/)
+	elsif ($realFileName =~ /\.csv|\.utx|\.txt/ || $input =~ /\.csv|\.utx|\.txt/)
 	{
 		$data = ReadData($input, parser=> 'csv')
 		or die "couldn't read 'csv' spreadsheet; check file extension or try another format?";
@@ -65,7 +94,9 @@ sub config_spreadsheet {
 		foreach $_ (@row)
 		{
 			$x++;
-			$_ = decode 'utf-8', $_;
+			$_ = decode 'utf8', $_;
+			s/\x{00}//g;
+			s/\s+/ /g;
 			if (!defined $_ || /^\s+[\r\n]*$/ || /^\s*\b[a-z]\b\s*[\r\n]*$/i){
 				$row[$x-1] = "(>^_^)>";
 				next;
@@ -140,8 +171,19 @@ sub config_spreadsheet_terminal {
 	my $header_found = 0;
 	foreach my $row_array (@rows) {
 		my @row = @$row_array;
+
 		foreach $_ (@row){
-			$_ = decode 'utf-8', $_;
+			my $char = $_;
+			my $result = eval { $char = decode 'utf-8', $_; };
+			unless ($result) {
+				print "Trying 'Latin 1' because Decode 'UTF-8' failed with: $@";
+				
+				my $result = eval { $char = decode 'Latin1', $_; };
+				unless($result) {
+					 print "Decode 'Latin 1' failed with: $@"
+  			    }
+            }
+			$_ = $char;
 			$_ = "\t" if (defined $_ == 0)
 		}
 		if (@row > 1 && $header_found == 0) {
@@ -253,8 +295,19 @@ sub config_spreadsheet_terminal {
 			while (1) {
 				print "Is this correct? \n\nORIGINAL HEADER ROW:\n\n\t@original_row\n\nCONFIGURED HEADER ROW:\n\n\t@row\n\nY/N: ";
 				$yes_or_no = <STDIN>;
-				last if ($yes_or_no =~ /yes|y/i);
+				if ($yes_or_no =~ /yes|y|no|n/i)
+				{
+					last;
+				}
+				else
+				{
+					print "Please type either 'y' or 'n' or 'yes' or 'no'";
+				}
 			}
+			if ($yes_or_no =~ /no|n/i) {
+                return -1;
+            }
+            
 		} elsif ($header_found == 0) {
 			next 
 		}
@@ -291,7 +344,9 @@ sub _run {
 	print "Dictionary ID*: ";
 		my $d_id = <STDIN>;
 		
-	config_spreadsheet($ARGV[0], $source_lang, $target_lang, $timestamp, $license, $creator, $description, $directionality, $subject, $d_id, $ARGV[0]);
+		while(1){
+			last if (config_spreadsheet_terminal($ARGV[0], $source_lang, $target_lang, $timestamp, $license, $creator, $description, $directionality, $subject, $d_id, $ARGV[0]) != -1)
+		}
 	}
 	else
 	{
